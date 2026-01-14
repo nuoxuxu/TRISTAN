@@ -14,7 +14,7 @@ import polars as pl
 import h5py
 import h5max
 import pyfaidx
-from gtfparse import read_gtf
+import pyranges as pr
 from .util_functions import (
     vec2DNA,
     construct_prot,
@@ -23,7 +23,12 @@ from .util_functions import (
     check_genomic_order,
     prtime,
 )
-from transcript_transformer import REQ_HEADERS, CUSTOM_HEADERS, DROPPED_HEADERS
+from transcript_transformer import (
+    REQ_HEADERS,
+    CUSTOM_HEADERS,
+    DROPPED_HEADERS,
+    COMPAT_MAPPING,
+)
 
 
 def process_seq_data(h5_path, gtf_path, fa_path, backup_path, backup=True):
@@ -50,7 +55,8 @@ def process_seq_data(h5_path, gtf_path, fa_path, backup_path, backup=True):
         f.close()
     else:
         DNA_seq = pyfaidx.Fasta(fa_path)
-        gtf = read_gtf(gtf_path, result_type="polars")
+        gr = pr.read_gtf(gtf_path)
+        gtf = pl.from_pandas(gr.df).rename(COMPAT_MAPPING)
         # use biobear instead (does not work well)
         # session = bb.connect()
         # gtf = session.sql(f"SELECT * FROM gtf_scan('{gtf_path}')").to_polars()
@@ -180,7 +186,7 @@ def save_transcriptome_to_h5(f, db):
         if db[key].dtype == pl.String:
             array = [a if a != None else "" for a in db[key]]
             max_char_len = db[key].str.len_chars().max()
-            if max_char_len > 0:
+            if (max_char_len is not None) & (max_char_len > 0):
                 grp.create_dataset(key, data=array, dtype=f"<S{max_char_len}")
             else:
                 continue
