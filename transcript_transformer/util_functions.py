@@ -4,7 +4,7 @@ import yaml
 import numpy as np
 import heapq
 from datetime import datetime
-from fasta_reader import read_fasta
+from pyfaidx import Fasta
 from transcript_transformer import CDN_PROT_DICT, PROT_IDX_DICT, DNA_IDX_DICT
 
 
@@ -211,23 +211,23 @@ def load_args(path, args):
 
 
 def parse_fasta(fasta_path, max_seq_len=None):
-    """Parse fasta file and return ids and sequences.
-
-    Args:
-        fasta_path (str): path to fasta file
-        max_seq_len (int, optional): maximum sequence length. Defaults to None.
-
-    Returns:
-        tuple: list of ids, list of sequences
-    """
+    """Parse fasta file and return ids and sequences using pyfaidx."""
     ids = []
     seqs = []
-    for item in read_fasta(fasta_path):
-        if max_seq_len is None or len(item.sequence) <= max_seq_len:
-            ids.append(item.defline)
-            seqs.append(item.sequence.upper())
+
+    # 'rebuild=False' prevents re-indexing if the .fai exists
+    # 'sequence_always_upper=True' handles the .upper() requirement automatically
+    genes = Fasta(fasta_path, sequence_always_upper=True)
+
+    for record_id in genes.keys():
+        record = genes[record_id]
+
+        if max_seq_len is None or len(record) <= max_seq_len:
+            ids.append(record_id)
+            seqs.append(str(record))  # Convert the FastaRecord object to a string
         else:
-            print(f"Sequence {item.defline} is longer than {max_seq_len}, omitting...")
+            print(f"Sequence {record_id} is longer than {max_seq_len}, omitting...")
+
     return ids, seqs
 
 

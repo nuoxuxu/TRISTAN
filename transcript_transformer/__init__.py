@@ -1,3 +1,17 @@
+# Compatibility GFFREAD -> pranges
+
+COMPAT_MAPPING = {
+    "Chromosome": "seqname",
+    "Source": "source",
+    "Feature": "feature",
+    "Start": "start",
+    "End": "end",
+    "Score": "score",
+    "Strand": "strand",
+    "Frame": "frame",
+}
+
+
 # Define global variables
 
 # --- BIOLOGICAL SEQUENCE DICTS ---
