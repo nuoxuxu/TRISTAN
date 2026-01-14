@@ -4,6 +4,9 @@ import pytorch_lightning as pl
 import torchmetrics as tm
 from performer_pytorch import Performer
 from performer_pytorch.performer_pytorch import FixedPositionalEmbedding
+from torch.nn.modules.activation import ReLU
+
+torch.serialization.add_safe_globals([ReLU])
 
 
 class TranscriptSeqRiboEmb(pl.LightningModule):
