@@ -15,7 +15,7 @@ import h5py
 import h5max
 import pyfaidx
 import pyranges as pr
-from transcript_transformer.util_functions import (
+from .util_functions import (
     vec2DNA,
     construct_prot,
     slice_gen,
@@ -62,7 +62,8 @@ def process_seq_data(h5_path, gtf_path, fa_path, backup_path, backup=True):
         # session = bb.connect()
         # gtf = session.sql(f"SELECT * FROM gtf_scan('{gtf_path}')").to_polars()
         # import exon number as int (strings have wrong sortin (e.g. 10, 11, 2,...))
-        gtf = derive_exon_number(gtf)
+        if "exon_number" not in gtf.columns:
+            gtf = derive_exon_number(gtf)
         gtf = gtf.with_columns(pl.col("exon_number").cast(pl.Int32, strict=False))
         db_tr = parse_transcriptome(gtf, DNA_seq)
         db_gtf = parse_genome(gtf)
